@@ -1,0 +1,44 @@
+{
+  "id": "conv-test-001",
+  "metadata": {
+    "user_id": "recruit-1",
+    "agent_version": "v1.0.0"
+  },
+  "turns": [
+    {
+      "role": "user",
+      "content": "Hi, I need help with my order.",
+      "timestamp": 1710758400000
+    },
+    {
+      "role": "assistant",
+      "content": "Sure! I can help with that. Could you please provide your order ID?",
+      "latencyMs": 500,
+      "timestamp": 1710758400500
+    },
+    {
+      "role": "user",
+      "content": "Order ID is 12345.",
+      "timestamp": 1710758410000
+    },
+    {
+      "role": "assistant",
+      "content": "Checking order 12345 details...",
+      "toolCalls": [
+        {
+          "name": "fetch_order_details",
+          "parameters": { "order_id": "12345" },
+          "executionSuccess": true
+        }
+      ],
+      "latencyMs": 2500,
+      "timestamp": 1710758412500
+    },
+    {
+      "role": "assistant",
+      "content": "I see your order 12345 is out for delivery. It should reach you in 2 hours.",
+      "latencyMs": 1200,
+      "timestamp": 1710758413700
+    }
+  ]
+}

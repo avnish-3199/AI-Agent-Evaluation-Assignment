@@ -1,10 +1,10 @@
-package com.swiggy.AI_Agent_Evaluation_Assignment;
+package com.swiggy.assignment;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class AiAgentEvaluationAssignmentApplicationTests {
+class AssignmentApplicationTests {
 
 	@Test
 	void contextLoads() {
