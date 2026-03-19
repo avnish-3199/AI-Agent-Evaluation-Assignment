@@ -155,9 +155,12 @@ public class EvaluationService {
         
         double humanScore = conversation.getFeedback().getRating();
         for (EvaluationResult r : results) {
+            double accuracy = 1.0 - Math.abs(humanScore - r.getScore());
+            accuracyHistory.computeIfAbsent(r.getEvaluatorName(), k -> new ArrayList<>()).add(accuracy);
+            
             if (Math.abs(humanScore - r.getScore()) > 0.5) {
                 log.warn("BLIND_SPOT_DETECTED: Evaluator {} failed to capture issues found by human for conversation {}. Accuracy: {}", 
-                    r.getEvaluatorName(), conversation.getConversationId(), 1.0 - Math.abs(humanScore - r.getScore()));
+                    r.getEvaluatorName(), conversation.getConversationId(), accuracy);
             }
         }
     }

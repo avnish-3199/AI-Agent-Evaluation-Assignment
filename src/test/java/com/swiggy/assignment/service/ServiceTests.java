@@ -159,4 +159,28 @@ class ServiceTests {
         Map<String, Double> metrics = evaluationService.getMetaEvaluationMetrics();
         assertEquals(0.3, metrics.get("E1"), 0.01); // 1.0 - |0.9 - 0.2| = 0.3 accuracy
     }
+
+    /**
+     * Tests meta-evaluation flywheel: feedback provided BEFORE evaluation.
+     */
+    @Test
+    void testMetaEvaluationFeedbackBeforeEvaluation() {
+        String convId = "feedback-before";
+        Conversation conv = Conversation.builder()
+                .conversationId(convId)
+                .turns(new ArrayList<>())
+                .feedback(Feedback.builder().userRating(1).build()) // 0.2 rating
+                .build();
+        
+        when(repository.findById(convId)).thenReturn(Optional.of(conv));
+        when(mockEvaluator.getName()).thenReturn("E1");
+        when(mockEvaluator.evaluate(any())).thenReturn(new EvaluationResult("E1", 0.9, "High", 0L));
+
+        // Trigger evaluation
+        evaluationService.getEvaluationSummary(convId);
+
+        Map<String, Double> metrics = evaluationService.getMetaEvaluationMetrics();
+        assertFalse(metrics.isEmpty(), "Metrics should not be empty");
+        assertEquals(0.3, metrics.get("E1"), 0.01); // 1.0 - |0.9 - 0.2| = 0.3 accuracy
+    }
 }
