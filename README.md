@@ -1,4 +1,4 @@
-# AI Agent Evaluation Pipeline (SDE-II Grade)
+# AI Agent Evaluation Pipeline
 
 An automated evaluation pipeline for continuous improvement of AI agents, featuring multi-dimensional assessment, meta-evaluation calibration, and automated improvement suggestions.
 
