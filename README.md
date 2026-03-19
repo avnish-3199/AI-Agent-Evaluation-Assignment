@@ -3,7 +3,7 @@
 An automated evaluation pipeline for continuous improvement of AI agents, featuring multi-dimensional assessment, meta-evaluation calibration, and automated improvement suggestions.
 
 ## 🚀 Live Prototype
-**Interactive Swagger API Docs:** [https://ai-evaluation-pipeline.onrender.com/swagger-ui/index.html](https://ai-evaluation-pipeline.onrender.com/swagger-ui/index.html)
+**Interactive Swagger API Docs:** [https://ai-evaluation-pipeline.onrender.com/swagger-ui/index.html](https://ai-evaluation-pipeline.onrender.com/swagger-ui/index.html#/)
 
 ## 🏗️ Architectural Standouts
 
