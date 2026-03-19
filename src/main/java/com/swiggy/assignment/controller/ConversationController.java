@@ -2,22 +2,22 @@ package com.swiggy.assignment.controller;
 
 import com.swiggy.assignment.model.Conversation;
 import com.swiggy.assignment.service.ConversationService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
- * Controller for handling conversation-related operations.
- * Provides endpoints for ingesting single and batch conversations, as well as fetching them by ID.
+ * REST controller for managing conversations.
+ * Supports individual and batch ingestion.
  */
 @RestController
-@RequestMapping("/conversations")
+@RequestMapping("/api/conversations")
 @RequiredArgsConstructor
-@Tag(name = "Conversation Ingestion", description = "Endpoints for ingesting multi-turn conversation logs")
 public class ConversationController {
 
     private final ConversationService conversationService;
@@ -25,38 +25,55 @@ public class ConversationController {
     /**
      * Ingests a single conversation.
      *
-     * @param conversation The conversation object to be ingested
+     * @param conversation The conversation object to ingest
      * @return ResponseEntity containing the ingested conversation
      */
     @PostMapping
-    @Operation(summary = "Ingest a single conversation")
     public ResponseEntity<Conversation> ingestConversation(@RequestBody Conversation conversation) {
-        return ResponseEntity.ok(conversationService.ingestConversation(conversation));
+        Conversation savedConversation = conversationService.ingestConversation(conversation);
+        return ResponseEntity.ok(savedConversation);
     }
 
     /**
-     * Ingests multiple conversations in a single batch.
+     * Batch ingest multiple conversations.
      *
-     * @param conversations List of conversation objects to be ingested
+     * @param conversations List of conversations to ingest
      * @return ResponseEntity containing the list of ingested conversations
      */
     @PostMapping("/batch")
-    @Operation(summary = "Ingest multiple conversations in batch")
-    public ResponseEntity<List<Conversation>> ingestBatch(@RequestBody List<Conversation> conversations) {
-        return ResponseEntity.ok(conversationService.ingestBatch(conversations));
+    public ResponseEntity<List<Conversation>> batchIngest(@RequestBody List<Conversation> conversations) {
+        List<Conversation> savedConversations = conversationService.ingestBatch(conversations);
+        return ResponseEntity.ok(savedConversations);
     }
 
     /**
-     * Retrieves a specific conversation by its unique ID.
+     * Retrieves a conversation by its ID.
      *
-     * @param id The unique identifier of the conversation
-     * @return ResponseEntity containing the requested conversation, or 404 if not found
+     * @param id The ID of the conversation
+     * @return ResponseEntity containing the conversation, or 404 if not found
      */
     @GetMapping("/{id}")
-    @Operation(summary = "Fetch a conversation by ID")
     public ResponseEntity<Conversation> getConversation(@PathVariable String id) {
-        return conversationService.getConversation(id)
-                .map(ResponseEntity::ok)
+        Optional<Conversation> conversation = conversationService.getConversation(id);
+        return conversation.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Retrieves all ingested conversations.
+     * If no data is present, returns an instructional message.
+     *
+     * @return ResponseEntity containing a list of all conversations or an instructional message
+     */
+    @GetMapping
+    public ResponseEntity<?> getAllConversations() {
+        List<Conversation> conversations = conversationService.getAllConversations();
+        if (conversations.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No conversations found in the system.");
+            response.put("instruction", "Please ingest data by hitting the POST /api/conversations or POST /api/conversations/batch endpoint first.");
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.ok(conversations);
     }
 }

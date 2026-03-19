@@ -1,82 +1,65 @@
 package com.swiggy.assignment.controller;
 
-import com.swiggy.assignment.model.EvaluationResult;
+import com.swiggy.assignment.model.EvaluationSummary;
 import com.swiggy.assignment.model.Feedback;
-import com.swiggy.assignment.model.ImprovementSuggestion;
-import com.swiggy.assignment.service.ConversationService;
 import com.swiggy.assignment.service.EvaluationService;
-import com.swiggy.assignment.service.ImprovementService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Controller for managing conversation evaluations and improvement suggestions.
- * Provides endpoints to trigger evaluations, submit feedback, and retrieve results and suggestions.
+ * REST controller for handling conversation evaluations and feedback.
  */
 @RestController
-@RequestMapping
+@RequestMapping("/api/evaluations")
 @RequiredArgsConstructor
-@Tag(name = "Evaluation & Suggestions", description = "Endpoints for evaluating conversations and generating suggestions")
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
-    private final ImprovementService improvementService;
-    private final ConversationService conversationService;
 
     /**
-     * Triggers all registered evaluators for a specific conversation.
+     * Triggers the evaluation of a conversation and returns a consolidated summary.
      *
      * @param conversationId The ID of the conversation to evaluate
-     * @return ResponseEntity containing the list of evaluation results
+     * @return ResponseEntity containing the EvaluationSummary
      */
-    @PostMapping("/evaluate/{conversationId}")
-    @Operation(summary = "Run all evaluators for a conversation")
-    public ResponseEntity<List<EvaluationResult>> evaluate(@PathVariable String conversationId) {
-        return ResponseEntity.ok(evaluationService.runEvaluation(conversationId));
+    @PostMapping("/{conversationId}/run")
+    public ResponseEntity<EvaluationSummary> runEvaluation(@PathVariable String conversationId) {
+        EvaluationSummary summary = evaluationService.getEvaluationSummary(conversationId);
+        return ResponseEntity.ok(summary);
     }
 
     /**
-     * Adds user feedback or rating to a conversation.
+     * Submits user feedback or human annotations for a conversation.
      *
-     * @param conversationId The ID of the conversation to provide feedback for
-     * @param feedback The feedback object containing ratings and comments
-     * @return ResponseEntity with 202 Accepted status
+     * @param conversationId The ID of the conversation
+     * @param feedback The feedback object
+     * @return ResponseEntity with status 200 OK
      */
-    @PostMapping("/feedback/{conversationId}")
-    @Operation(summary = "Submit user feedback/rating for a conversation")
-    public ResponseEntity<Void> addFeedback(@PathVariable String conversationId, @RequestBody Feedback feedback) {
+    @PostMapping("/{conversationId}/feedback")
+    public ResponseEntity<Void> submitFeedback(@PathVariable String conversationId, @RequestBody Feedback feedback) {
         evaluationService.addFeedback(conversationId, feedback);
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.ok().build();
     }
 
     /**
-     * Retrieves the evaluation results for a specific conversation.
+     * Retrieves meta-evaluation metrics (evaluator accuracy against feedback).
+     * If no metrics are available, returns an instructional message.
      *
-     * @param conversationId The ID of the conversation
-     * @return ResponseEntity containing the list of evaluation results, or 404 if not found
+     * @return ResponseEntity containing a map of evaluator names or an instructional message
      */
-    @GetMapping("/results/{conversationId}")
-    @Operation(summary = "Fetch evaluation results for a conversation")
-    public ResponseEntity<List<EvaluationResult>> getResults(@PathVariable String conversationId) {
-        return conversationService.getConversation(conversationId)
-                .map(conversation -> ResponseEntity.ok(conversation.getEvaluations()))
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Generates improvement suggestions for a conversation based on its evaluation results.
-     *
-     * @param conversationId The ID of the conversation
-     * @return ResponseEntity containing the list of improvement suggestions
-     */
-    @GetMapping("/suggestions/{conversationId}")
-    @Operation(summary = "Fetch improvement suggestions based on evaluation results")
-    public ResponseEntity<List<ImprovementSuggestion>> getSuggestions(@PathVariable String conversationId) {
-        return ResponseEntity.ok(improvementService.generateSuggestions(conversationId));
+    @GetMapping("/meta-metrics")
+    public ResponseEntity<?> getMetaMetrics() {
+        Map<String, Double> metrics = evaluationService.getMetaEvaluationMetrics();
+        if (metrics.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No meta-evaluation metrics available.");
+            response.put("instruction", "Meta-metrics are generated after submitting feedback using POST /api/evaluations/{id}/feedback and running an evaluation.");
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.ok(metrics);
     }
 }

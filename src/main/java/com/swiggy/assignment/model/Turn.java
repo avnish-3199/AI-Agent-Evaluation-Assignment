@@ -1,26 +1,33 @@
 package com.swiggy.assignment.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * Represents a single turn in a multi-turn conversation.
- * A turn includes the role of the speaker, content, and any tool calls made.
+ * Represents a single turn in a conversation.
+ * Compliant with assignment.md schema.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Turn {
-    private String role; // user, assistant, system
+    @JsonProperty("turn_id")
+    private Integer turnId;
+    
+    private String role; // "user" or "assistant"
     private String content;
+    
+    @JsonProperty("tool_calls")
     private List<ToolCall> toolCalls;
-    private long latencyMs;
-    private long timestamp;
-    private Map<String, Object> metadata;
+    
+    @JsonProperty("latency_ms")
+    private Long latencyMs;
+    
+    private String timestamp; // ISO-8601 format
 }

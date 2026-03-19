@@ -8,31 +8,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Evaluator that focuses on the quality and success of tool calls within a conversation.
- * It calculates a score based on the success rate of tool executions and the presence of required parameters.
+ * It calculates a score based on success rate, parameter accuracy, and hallucination detection.
  */
 @Slf4j
 @Component
 public class ToolCallEvaluator implements Evaluator {
 
-    /**
-     * Returns the name of the evaluator.
-     *
-     * @return "Tool-Call-Evaluator"
-     */
     @Override
     public String getName() {
         return "Tool-Call-Evaluator";
     }
 
-    /**
-     * Evaluates the conversation based on the success and quality of tool calls.
-     *
-     * @param conversation The conversation to evaluate
-     * @return EvaluationResult containing the tool call score and comments
-     */
     @Override
     public EvaluationResult evaluate(Conversation conversation) {
         log.info("Running ToolCallEvaluator for conversation: {}", conversation.getId());
@@ -41,34 +31,50 @@ public class ToolCallEvaluator implements Evaluator {
             return buildResult(1.0, "No turns to evaluate.");
         }
 
-        int totalToolCalls = 0;
-        int successfulToolCalls = 0;
-        int missingParamsCalls = 0;
+        double totalCalls = 0;
+        double successfulCalls = 0;
+        double hallucinatedCalls = 0;
 
-        for (Turn turn : turns) {
+        for (int i = 0; i < turns.size(); i++) {
+            Turn turn = turns.get(i);
             List<ToolCall> toolCalls = turn.getToolCalls();
+            
             if (toolCalls != null && !toolCalls.isEmpty()) {
-                totalToolCalls += toolCalls.size();
+                totalCalls += toolCalls.size();
+                
+                // Get previous user content to check for hallucinations
+                String context = "";
+                if (i > 0) {
+                    context = turns.get(i-1).getContent() != null ? turns.get(i-1).getContent().toLowerCase() : "";
+                }
+
                 for (ToolCall tc : toolCalls) {
                     if (tc.isExecutionSuccess()) {
-                        successfulToolCalls++;
+                        successfulCalls++;
                     }
-                    if (tc.getParameters() == null || tc.getParameters().isEmpty()) {
-                        missingParamsCalls++;
+                    
+                    // Simple hallucination check: are parameter values present in context?
+                    if (tc.getParameters() != null) {
+                        for (Object value : tc.getParameters().values()) {
+                            if (value instanceof String valStr) {
+                                if (!context.contains(valStr.toLowerCase()) && valStr.length() > 2) {
+                                    hallucinatedCalls += 0.5; // Partial penalty
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
-        if (totalToolCalls == 0) {
-            return buildResult(1.0, "No tool calls found in the conversation.");
+        if (totalCalls == 0) {
+            return buildResult(1.0, "No tool calls found.");
         }
 
-        double score = (double) successfulToolCalls / totalToolCalls;
-        // Apply penalty for missing params
-        score -= (double) missingParamsCalls / totalToolCalls * 0.2;
-        
-        return buildResult(Math.max(0.0, score), String.format("Found %d tool calls. Successes: %d. Missing params: %d.", totalToolCalls, successfulToolCalls, missingParamsCalls));
+        double score = (successfulCalls - hallucinatedCalls) / totalCalls;
+        return buildResult(Math.max(0.0, score), 
+                String.format("Evaluated %d tool calls. Success rate: %.2f. Hallucination penalty: %.2f.", 
+                        (int)totalCalls, successfulCalls/totalCalls, hallucinatedCalls/totalCalls));
     }
 
     private EvaluationResult buildResult(double score, String comments) {

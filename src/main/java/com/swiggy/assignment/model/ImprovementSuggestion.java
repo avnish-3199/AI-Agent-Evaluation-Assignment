@@ -16,5 +16,5 @@ public class ImprovementSuggestion {
     private String type; // e.g., "PROMPT_OPTIMIZATION", "TOOL_VALIDATION", "LATENCY_FIX"
     private String suggestion;
     private String rationale;
-    private double confidenceScore; // 0.0 to 1.0
+    private double confidence; // 0.0 to 1.0
 }

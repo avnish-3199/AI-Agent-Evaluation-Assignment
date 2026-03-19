@@ -27,10 +27,10 @@ public class ConversationService {
      * @return The ingested conversation with its ID
      */
     public Conversation ingestConversation(Conversation conversation) {
-        if (conversation.getId() == null || conversation.getId().isEmpty()) {
-            conversation.setId(UUID.randomUUID().toString());
+        if (conversation.getConversationId() == null || conversation.getConversationId().isEmpty()) {
+            conversation.setConversationId(UUID.randomUUID().toString());
         }
-        log.info("Ingesting conversation with ID: {}", conversation.getId());
+        log.info("Ingesting conversation with ID: {}", conversation.getConversationId());
         return repository.save(conversation);
     }
 
@@ -54,6 +54,15 @@ public class ConversationService {
      */
     public Optional<Conversation> getConversation(String id) {
         return repository.findById(id);
+    }
+
+    /**
+     * Retrieves all conversations.
+     *
+     * @return List of all conversations
+     */
+    public List<Conversation> getAllConversations() {
+        return repository.findAll();
     }
     
     /**

@@ -48,7 +48,7 @@ public class HeuristicEvaluator implements Evaluator {
         for (Turn turn : turns) {
             if ("assistant".equalsIgnoreCase(turn.getRole())) {
                 assistantTurns++;
-                if (turn.getLatencyMs() > LATENCY_THRESHOLD_MS) {
+                if (turn.getLatencyMs() != null && turn.getLatencyMs() > LATENCY_THRESHOLD_MS) {
                     slowTurns++;
                 }
                 if (turn.getContent() == null || turn.getContent().trim().isEmpty()) {

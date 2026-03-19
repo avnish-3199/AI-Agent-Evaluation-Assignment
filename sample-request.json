@@ -1,44 +1,79 @@
-{
-  "id": "conv-test-001",
-  "metadata": {
-    "user_id": "recruit-1",
-    "agent_version": "v1.0.0"
+[
+  {
+    "conversation_id": "conv_batch_001",
+    "agent_version": "v2.3.1",
+    "metadata": {
+      "user_id": "user_101",
+      "test_case": "success_scenario"
+    },
+    "turns": [
+      {
+        "turn_id": 1,
+        "role": "user",
+        "content": "I need a flight from San Francisco to Tokyo on April 10th.",
+        "timestamp": "2024-03-19T10:00:00Z"
+      },
+      {
+        "turn_id": 2,
+        "role": "assistant",
+        "content": "Searching for flights from SFO to NRT...",
+        "tool_calls": [
+          {
+            "tool_name": "flight_search",
+            "parameters": {
+              "origin": "SFO",
+              "destination": "NRT",
+              "date": "2024-04-10"
+            },
+            "result": {
+              "status": "success",
+              "flights": ["JL001", "UA837"]
+            },
+            "latency_ms": 320,
+            "execution_success": true
+          }
+        ],
+        "latency_ms": 850,
+        "timestamp": "2024-03-19T10:00:01Z"
+      }
+    ]
   },
-  "turns": [
-    {
-      "role": "user",
-      "content": "Hi, I need help with my order.",
-      "timestamp": 1710758400000
+  {
+    "conversation_id": "conv_batch_002",
+    "agent_version": "v2.3.1",
+    "metadata": {
+      "user_id": "user_102",
+      "test_case": "failure_latency_scenario"
     },
-    {
-      "role": "assistant",
-      "content": "Sure! I can help with that. Could you please provide your order ID?",
-      "latencyMs": 500,
-      "timestamp": 1710758400500
-    },
-    {
-      "role": "user",
-      "content": "Order ID is 12345.",
-      "timestamp": 1710758410000
-    },
-    {
-      "role": "assistant",
-      "content": "Checking order 12345 details...",
-      "toolCalls": [
-        {
-          "name": "fetch_order_details",
-          "parameters": { "order_id": "12345" },
-          "executionSuccess": true
-        }
-      ],
-      "latencyMs": 2500,
-      "timestamp": 1710758412500
-    },
-    {
-      "role": "assistant",
-      "content": "I see your order 12345 is out for delivery. It should reach you in 2 hours.",
-      "latencyMs": 1200,
-      "timestamp": 1710758413700
-    }
-  ]
-}
+    "turns": [
+      {
+        "turn_id": 1,
+        "role": "user",
+        "content": "Book flight JL001 for me now.",
+        "timestamp": "2024-03-19T10:05:00Z"
+      },
+      {
+        "turn_id": 2,
+        "role": "assistant",
+        "content": "I am attempting to book your flight...",
+        "tool_calls": [
+          {
+            "tool_name": "flight_book",
+            "parameters": {
+              "flight_number": "JL001",
+              "passenger": "Anonymous"
+            },
+            "result": {
+              "error": "Timeout",
+              "code": 504
+            },
+            "latency_ms": 2500,
+            "execution_success": false
+          }
+        ],
+        "latency_ms": 3200,
+        "timestamp": "2024-03-19T10:05:03Z"
+      }
+    ]
+  }
+]
